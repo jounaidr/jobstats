@@ -1,0 +1,10 @@
+[Unit]
+Description=Ingest jobstats data into cluster della database tables
+Wants=ingest_jobstats-jr.timer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ingest_jobstats -c localcluster -n 1000
+
+[Install]
+WantedBy=multi-user.target

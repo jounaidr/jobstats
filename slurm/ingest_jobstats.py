@@ -4,6 +4,7 @@ import argparse
 import os
 import subprocess
 import sys
+import pymysql
 import MySQLdb
 
 # an awkward way to import class in jobstats, but until reorganized as its own module this will do
@@ -31,15 +32,12 @@ def get_gpu_tres(conn):
 
 def get_jobs_to_process(conn, cluster, num):
     # tres_req will contain something like 1=8,2=65536,4=1,5=24,1001=2 so store ,1001= as string to search for
-    gpuid = ",%d=" % get_gpu_tres(conn)
+    #gpuid = ",%d=" % get_gpu_tres(conn)
     cur = conn.cursor()
     cur.execute('select id_job,time_start,time_end,state,tres_req from %s_job_table where admin_comment IS NULL and time_start > 0 and time_end > 0 ORDER BY id_job DESC LIMIT %d' % (cluster, num))
     jobs = {}
     for id_job,start,end,state,tres in cur.fetchall():
-        if gpuid in tres and (gpuid+"0") not in tres:
-            gpus = True
-        else:
-            gpus = False
+        gpus = False
         jobs[id_job] = { "start": start, "end": end, "state": state, "tres": tres, "gpus": gpus }
     return jobs
 
@@ -72,17 +70,11 @@ def process_job(conn, cluster, jobid, details):
         print("ERROR: Failed to process jobid %s, got error: %s" %(jobid, e))
 
 def run_processing(cluster, num):
-    conn = MySQLdb.connect(db=DB,read_default_file='/root/.my.cnf')
+    conn = MySQLdb.connect(db=DB,read_default_file='/etc/mysql/my.cnf',host="localhost",user="slurm",passwd="admin")
     db_jobs = get_jobs_to_process(conn, cluster, num)
-    cur_jobs = get_current_jobs(cluster)
+    #cur_jobs = get_current_jobs(cluster)
     for i in db_jobs:
-        state = db_jobs[i]["state"]
-        if i in cur_jobs or db_jobs[i]["end"] == 0:
-            print("Skipping processing of %s, in current jobs, has state %s, gpus=%s, tres=%s" %(i, state, db_jobs[i]["gpus"], db_jobs[i]["tres"]))
-        elif state < 3:
-            print("Skipping processing of %s, has state %s" %(i, state))
-        else:
-            process_job(conn, cluster, i, db_jobs[i])
+        process_job(conn, cluster, i, db_jobs[i])
 
 parser = argparse.ArgumentParser(description="Populate slurm database with summary jobstats for recent jobs without any stats.")
 parser.add_argument("-c", "--cluster", required=True,

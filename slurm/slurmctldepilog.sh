@@ -4,6 +4,8 @@ sleep 5s
 # We need to treat differently array jobs where jobid=slurm array jobid or else we will overwrite all
 # array jobs with the same data. Therefore use ${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} instead of
 # jobid for those jobs.
+Echo ##### STARTING EPILOG #####
+
 if [ "x$SLURM_ARRAY_JOB_ID" = "x$SLURM_JOB_ID" ]; then
 	INTERNAL_JOBID=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
 else

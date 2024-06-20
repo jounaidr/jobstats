@@ -22,7 +22,7 @@ except ModuleNotFoundError:
     blessed_is_available = False
 
 # prometheus server to query
-PROM_SERVER = "http://vigilant2:8480"
+PROM_SERVER = "http://localhost:9090"
 
 # number of seconds between measurements
 SAMPLING_PERIOD = 30

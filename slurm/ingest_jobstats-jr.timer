@@ -1,0 +1,12 @@
+[Unit]
+Description=Timer for jobstats data ingest into cluster jr personal cash moni cluster :) database tables
+Requires=ingest_jobstats-jr.service
+
+[Timer]
+Unit=ingest_jobstats-jr.service
+#OnCalendar=*:0/4
+OnBootSec=10min
+OnUnitActiveSec=4min
+
+[Install]
+WantedBy=timers.target
